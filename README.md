@@ -1,66 +1,10 @@
-# com.passslot.cordova.plugin.passbook
+# Cordova Plugin Passbook New
+This is forked version of [cordova-plugin-passbook](https://github.com/passslot/cordova-plugin-passbook). Due to naming difference between package name and plugin name, there were various issues with cordova installation which are now fixed with common name `cordova-plugin-passbook-new`.
 
-This plugin provides support for showing Passbook passs to your users and allows them to add it to their native Wallet (regardless of how you create your passes, whether you do it on your own or using any third-party services like [PassSlot](http://www.PassSlot.com))
+There was also a bug [#10](https://github.com/passslot/cordova-plugin-passbook/issues/10) on github which breaks browser history, which is now fixed with commenting code as per mentioned in the issue itself.
 
-**NOTE**: This plugin does not allow you to create Passbook passes.
+I don't recommend downloading `.pkpass` file using `Passbook.downloadPass()` function as it does not send cookies or any headers. Instead download `.pkpass` file using `axios` or `fetch` HTTP API, save it on the device and open with `passbook.addPass(file)` where `file` is local device path to the file.
+
 
 ## Installation
-
-    cordova plugin add cordova-plugin-passbook
-
-Or the latest (unstable) version:
-
-    cordova plugin add https://github.com/passslot/cordova-plugin-passbook
-
-## Supported Platforms
-
-
-- iOS
-- ~~Android~~ (coming soon)
-
-## Example
-
-### Simple Call
-
-```javascript
-    Passbook.downloadPass('https://d.pslot.io/cQY2f', function (pass, added) {
-        console.log(pass, added);
-        if (added) {
-            Passbook.openPass(pass);
-        } else {
-            alert('Please add the pass');
-        }
-    }, function (error) {
-        console.error(error);
-    });
-```
-
-### Adding Headers
-
-```javascript
-
-   var callData =  {
-                    "url":'https://d.pslot.io/cQY2f',
-                    "headers":{ "authorization": "Bearer <token>" }
-                  };
-
-    Passbook.downloadPass(callData, function (pass, added) {
-        console.log(pass, added);
-        if (added) {
-            Passbook.openPass(pass);
-        } else {
-            alert('Please add the pass');
-        }
-    }, function (error) {
-        console.error(error);
-    });
-```
-
-## Documentation
-
-Plugin documentation: [doc/index.md](doc/index.md)
-
-
-## Creating Passbook Passes
-This Plugin was written by [PassSlot](http://www.PassSlot.com).<br>
-PassSlot is a Passbook service that makes Passbook usage easy for everybody. It helps you design and distribute mobile passes to all major mobile platforms.
+    cordova plugin add cordova-plugin-passbook-new
