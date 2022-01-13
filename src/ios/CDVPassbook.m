@@ -13,6 +13,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
 - (void)sendPassResult:(PKPass*)pass added:(BOOL)added command:(CDVInvokedUrlCommand*)command;
 - (void)sendError:(NSError*)error command:(CDVInvokedUrlCommand*)command;
 - (void)downloadPass:(NSURL*) url
+          HTTPMethod: (NSString*)HTTPMethod
              headers:(NSDictionary * _Nullable)headers
              success:(AddPassResultBlock)successBlock
                error:(void (^)(NSError *error))errorBlock;
@@ -61,10 +62,12 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     
     NSURL *url;
     NSDictionary *headers;
+    NSString* HTTPMethod;
     
     if ([callData isKindOfClass:[NSDictionary class]]) {
         
         url     = [NSURL URLWithString:callData[@"url"] ];
+        HTTPMethod = callData[@"HTTPMethod"];
         headers = callData[@"headers"];
     }
     else { // let assume that is a string
@@ -76,7 +79,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
         [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
         return;
     }
-    [self downloadPass:url headers:headers success:^(PKPass *pass, BOOL added){
+    [self downloadPass:url HTTPMethod:HTTPMethod headers:headers success:^(PKPass *pass, BOOL added){
         [self sendPassResult:pass added:added command:command];
     } error:^(NSError *error) {
         [self sendError:error command:command];
@@ -209,11 +212,14 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     return presentingViewController;
 }
 
-- (void)downloadPass:(NSURL*) url headers:(NSDictionary * _Nullable)headers success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock
+- (void)downloadPass:(NSURL*) url HTTPMethod: (NSString*)HTTPMethod headers:(NSDictionary * _Nullable)headers success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock
 {
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20.0];
     // Fake User-Agent to be recognized as Passbook app, so that we directly get the pkpass file (when possible)
     [request addValue:@"Passbook/1.0 CFNetwork/672.0.2 Darwin/14.0.0" forHTTPHeaderField:@"User-Agent"];
+    if( HTTPMethod != nil ) {
+        request.HTTPMethod = HTTPMethod;
+    }
     if( headers != nil ) {
         
         for (NSString* key in headers) {
