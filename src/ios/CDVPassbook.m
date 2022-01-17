@@ -52,6 +52,74 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
 }
 
+- (void)passExists:(CDVInvokedUrlCommand*)command;
+{
+    if(![self ensureAvailability:command]) {
+        return;
+    }
+    
+    NSString* passIdentifier;
+    NSString* passSerial;
+
+    if ([callData isKindOfClass:[NSDictionary class]]) {
+        passIdentifier     = [NSURL URLWithString:callData[@"passIdentifier"] ];
+        passSerial = callData[@"passSerial"];
+    }
+
+    if(!passIdentifier) {
+        [self sendError:[NSError errorWithDomain:@"CDVPassbook" code:1 userInfo:@{NSLocalizedDescriptionKey: @"Pass identifier is required"}] command:command];
+        return;
+    }
+    if(!passSerial) {
+        [self sendError:[NSError errorWithDomain:@"CDVPassbook" code:1 userInfo:@{NSLocalizedDescriptionKey: @"Pass serial is required"}] command:command];
+        return;
+    }
+    PKPassLibrary *passLibrary = [[PKPassLibrary alloc] init];
+    PKPass *pass = [passLibrary passWithPassTypeIdentifier:passIdentifier serialNumber:passSerial];
+
+
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:!pass==nil];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
+}
+
+
+- (void)doesPassExist:(CDVInvokedUrlCommand*)commandDelegate
+{
+    if(![self ensureAvailability:command]) {
+        return;
+    }
+    
+    NSURL *url = nil;
+    id argument = [command argumentAtIndex:0];
+    if ([argument isKindOfClass:NSDictionary.class]) {
+        url = [NSURL URLWithString:argument[@"passURL"]];
+    } else if ([argument isKindOfClass:NSString.class]) {
+        url = [NSURL URLWithString:argument];
+    } else {
+        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No Pass URL provided"];
+        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
+        return;
+    }
+    
+    if (!url) {
+        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_MALFORMED_URL_EXCEPTION];
+        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
+        return;
+    }
+    
+    BOOL opened = [[UIApplication sharedApplication] openURL:url];
+    if (opened) {
+        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
+
+    } else {
+        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Could not open Pass"];
+        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
+    }
+    
+}
+
+
 - (void)downloadPass:(CDVInvokedUrlCommand*)command
 {
     if(![self ensureAvailability:command]) {
