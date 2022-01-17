@@ -30,6 +30,15 @@ passbook.Pass = Pass;
 passbook.available = function (resultCallback) {
     exec(resultCallback, null, "Passbook", "available", []);
 };
+
+/**
+ * @param {Object}  { passIdentifier:String, passSerial:String }
+ * @param resultCallback {Function} is called with result
+ */
+ passbook.exists = function (callData, resultCallback) {
+    exec(resultCallback, null, "Passbook", "passExists", [callData]);
+};
+
 /**
  *
  * @param {Object}  url:String | { url:String, headers?:Object }
