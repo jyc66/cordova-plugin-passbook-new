@@ -52,7 +52,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
 }
 
-- (void)passExists:(CDVInvokedUrlCommand*)command;
+- (void)passExists:(CDVInvokedUrlCommand*)command
 {
     if(![self ensureAvailability:command]) {
         return;
