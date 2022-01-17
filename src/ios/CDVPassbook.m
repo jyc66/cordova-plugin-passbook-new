@@ -60,10 +60,12 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     
     NSString* passIdentifier;
     NSString* passSerial;
+    
+    id callData = [command argumentAtIndex:0];
 
     if ([callData isKindOfClass:[NSDictionary class]]) {
-        passIdentifier     = [NSURL URLWithString:callData[@"passIdentifier"] ];
-        passSerial = callData[@"passSerial"];
+        passIdentifier = callData[@"passIdentifier"];
+        passSerial     = callData[@"passSerial"];
     }
 
     if(!passIdentifier) {
@@ -78,47 +80,9 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     PKPass *pass = [passLibrary passWithPassTypeIdentifier:passIdentifier serialNumber:passSerial];
 
 
-    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:!pass==nil];
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:pass!=nil];
     [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
 }
-
-
-- (void)doesPassExist:(CDVInvokedUrlCommand*)commandDelegate
-{
-    if(![self ensureAvailability:command]) {
-        return;
-    }
-    
-    NSURL *url = nil;
-    id argument = [command argumentAtIndex:0];
-    if ([argument isKindOfClass:NSDictionary.class]) {
-        url = [NSURL URLWithString:argument[@"passURL"]];
-    } else if ([argument isKindOfClass:NSString.class]) {
-        url = [NSURL URLWithString:argument];
-    } else {
-        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No Pass URL provided"];
-        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
-        return;
-    }
-    
-    if (!url) {
-        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_MALFORMED_URL_EXCEPTION];
-        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
-        return;
-    }
-    
-    BOOL opened = [[UIApplication sharedApplication] openURL:url];
-    if (opened) {
-        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
-
-    } else {
-        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Could not open Pass"];
-        [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
-    }
-    
-}
-
 
 - (void)downloadPass:(CDVInvokedUrlCommand*)command
 {
