@@ -48,12 +48,10 @@ passbook.available = function (resultCallback) {
 passbook.downloadPass = function (callData, passCallback, errorCallback) {
     return new Promise(
         (resolve, reject) => {
-            console.log("In promise");
             exec(function (result) {
                 if (typeof(passCallback) === 'function') {
                     var pass = result.pass;
-                    resolve(new Pass(pass.passTypeIdentifier, pass.serialNumber, pass.passURL), result.added);
-                    // passCallback(new Pass(pass.passTypeIdentifier, pass.serialNumber, pass.passURL), result.added);
+                    resolve({pass: new Pass(pass.passTypeIdentifier, pass.serialNumber, pass.passURL), isAdded: result.added});
                 }
             }, function(err){reject(err)}, "Passbook", "downloadPass", [callData]);
     });
