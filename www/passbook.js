@@ -24,17 +24,12 @@ passbook.Pass = Pass;
 
 /**
  *
- * @param resultCallback {Function} is called with result
  */
 passbook.available = function () {
   return new Promise((resolve, reject) => {
     exec(
-      function (result) {
-        resolve(result);
-      },
-      function (err) {
-        reject(err);
-      },
+      resolve,
+      reject,
       "Passbook",
       "available",
       []
