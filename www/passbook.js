@@ -46,12 +46,17 @@ passbook.available = function (resultCallback) {
  * @param {Function} errorCallback
  */
 passbook.downloadPass = function (callData, passCallback, errorCallback) {
-    exec(function (result) {
-        if (typeof(passCallback) === 'function') {
-            var pass = result.pass;
-            passCallback(new Pass(pass.passTypeIdentifier, pass.serialNumber, pass.passURL), result.added);
-        }
-    }, errorCallback, "Passbook", "downloadPass", [callData]);
+    return new Promise(
+        (resolve, reject) => {
+            console.log("In promise");
+            exec(function (result) {
+                if (typeof(passCallback) === 'function') {
+                    var pass = result.pass;
+                    resolve(new Pass(pass.passTypeIdentifier, pass.serialNumber, pass.passURL), result.added);
+                    // passCallback(new Pass(pass.passTypeIdentifier, pass.serialNumber, pass.passURL), result.added);
+                }
+            }, function(err){reject(err)}, "Passbook", "downloadPass", [callData]);
+    });
 };
 
 /**
