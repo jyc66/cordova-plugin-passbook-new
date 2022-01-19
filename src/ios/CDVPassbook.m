@@ -15,7 +15,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
 - (void)downloadPass:(NSURL*) url
           HTTPMethod: (NSString*)HTTPMethod
              headers:(NSDictionary * _Nullable)headers
-             bodyParams:(NSDictionary * _Nullable)params
+             params:(NSDictionary * _Nullable)params
              success:(AddPassResultBlock)successBlock
                error:(void (^)(NSError *error))errorBlock;
 - (void)tryAddPass:(NSData*)data success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock;
@@ -247,7 +247,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     return presentingViewController;
 }
 
-- (void)downloadPass:(NSURL*) url HTTPMethod: (NSString*)HTTPMethod headers:(NSDictionary * _Nullable)headers bodyParams:(NSDictionary * _Nullable)params success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock
+- (void)downloadPass:(NSURL*) url HTTPMethod: (NSString*)HTTPMethod headers:(NSDictionary * _Nullable)headers params:(NSDictionary * _Nullable)params success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock
 {
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20.0];
     // Fake User-Agent to be recognized as Passbook app, so that we directly get the pkpass file (when possible)
