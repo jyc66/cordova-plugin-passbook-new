@@ -15,6 +15,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
 - (void)downloadPass:(NSURL*) url
           HTTPMethod: (NSString*)HTTPMethod
              headers:(NSDictionary * _Nullable)headers
+             bodyParams:(NSDictionary * _Nullable)params
              success:(AddPassResultBlock)successBlock
                error:(void (^)(NSError *error))errorBlock;
 - (void)tryAddPass:(NSData*)data success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock;
@@ -94,6 +95,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     
     NSURL *url;
     NSDictionary *headers;
+    NSDictionary *params;
     NSString* HTTPMethod;
     
     if ([callData isKindOfClass:[NSDictionary class]]) {
@@ -101,6 +103,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
         url     = [NSURL URLWithString:callData[@"url"] ];
         HTTPMethod = callData[@"HTTPMethod"];
         headers = callData[@"headers"];
+        params = callData[@"params"];
     }
     else { // let assume that is a string
         NSString *urlStr = [command argumentAtIndex:0];
@@ -111,7 +114,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
         [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
         return;
     }
-    [self downloadPass:url HTTPMethod:HTTPMethod headers:headers success:^(PKPass *pass, BOOL added){
+    [self downloadPass:url HTTPMethod:HTTPMethod headers:headers params:params success:^(PKPass *pass, BOOL added){
         [self sendPassResult:pass added:added command:command];
     } error:^(NSError *error) {
         [self sendError:error command:command];
@@ -244,7 +247,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     return presentingViewController;
 }
 
-- (void)downloadPass:(NSURL*) url HTTPMethod: (NSString*)HTTPMethod headers:(NSDictionary * _Nullable)headers success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock
+- (void)downloadPass:(NSURL*) url HTTPMethod: (NSString*)HTTPMethod headers:(NSDictionary * _Nullable)headers bodyParams:(NSDictionary * _Nullable)params success:(AddPassResultBlock)successBlock error:(void (^)(NSError *error))errorBlock
 {
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20.0];
     // Fake User-Agent to be recognized as Passbook app, so that we directly get the pkpass file (when possible)
@@ -252,6 +255,7 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
     if( HTTPMethod != nil ) {
         request.HTTPMethod = HTTPMethod;
     }
+    
     if( headers != nil ) {
         
         for (NSString* key in headers) {
@@ -260,11 +264,28 @@ typedef void (^AddPassResultBlock)(PKPass *pass, BOOL added);
         }
  
     }
+
+    if( params != nil ) {
+        NSMutableString* postBody = [NSMutableString string];
+        for (NSString* key in params) {
+            id value = params[key];
+            if( [postBody length] > 1 ) {
+                [postBody appendString: @"&"];
+            }
+            [postBody appendFormat:@"%@=%@", key, value];
+        }
+
+        [request setHTTPBody:[postBody dataUsingEncoding:NSUTF8StringEncoding]];
+
+ 
+    }
     
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         [self tryAddPass:data success:successBlock error:errorBlock];
     }];
 }
+
+
 
 #pragma mark - PKAddPassesViewControllerDelegate
 
